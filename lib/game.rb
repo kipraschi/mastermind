@@ -2,10 +2,11 @@ require_relative 'board'
 require_relative 'codemaker'
 require_relative 'codebreaker'
 class Game
-  def initialize(turns = 12, colors = 6)
+  def initialize(turns = 12, pegs = 4, colors = 6)
     @turns = turns
     @turn = 1
-    @pegs = 4
+    @pegs = pegs
+    @colors = colors
     @computer = Codemaker.new
     @board = Board.new(@turns, @pegs)
   end
@@ -15,10 +16,11 @@ class Game
       puts "\nAttempt #{@turn}"
       print_conditions
       begin
-        guess = gets.chomp.split("")
-        raise unless valid_input(guess)
+        guess = gets.chomp.split('')
+        errors = input_errors(guess)
+        raise "Invalid Input" unless errors.empty?
       rescue
-        remind_conditions
+        remind_conditions(errors)
         retry
       end
       @board.board[@turn - 1] = guess
@@ -30,21 +32,31 @@ class Game
 
   private
 
-  def valid_input(input)
-    input.all? { |number| (1..@pegs).include?(number.to_i) } &&
-    input.length == @pegs && 
-    input.uniq.length == @pegs
+  def input_errors(input)
+    errors = {}
+
+    unless input.all? { |number| (1..@colors).include?(number.to_i) }
+      errors[:range] =  "Your guess has to only contain numbers no lower than 1 and no higher than #{@colors}."
+    end
+    if input.length != @pegs
+      errors[:length] = "Code is #{@pegs} digits."
+    elsif input.uniq.length != @pegs
+      errors[:unique] = "Numbers don't repeat."
+    end
+    errors
+  end
+
+  def remind_conditions(errors)
+    puts "\nError:"
+    errors.each do |type, msg|
+      puts " - #{msg}"
+    end
+    print "Please try again: "
   end
 
   def print_conditions
     puts "Choose #{@pegs} unique numbers from 1 to 6."
     print 'Make your guess: '
-  end
-
-  def remind_conditions
-    puts "\nNo number can be lower than 1 or higher than 6."
-    puts "Code is #{@pegs} digits only. Numbers don't repeat."
-    print "Please try again: "
   end
 
 end

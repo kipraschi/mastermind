@@ -12,8 +12,7 @@ class Game
   end
 
   def play
-    until @turn == @turns
-      puts "\nAttempt #{@turn}"
+    until game_over
       print_conditions
       begin
         guess = gets.chomp.split('')
@@ -23,14 +22,24 @@ class Game
         remind_conditions(errors)
         retry
       end
-      @board.board[@turn - 1] = guess
-      @board.feedback[@turn - 1] = @computer.give_feedback(guess)
-      @board.draw
+      feedback = @computer.give_feedback(guess)
+      @board.update(@turn, guess, feedback)
+      break if code_broken
       @turn += 1
     end
+    code_broken ? (puts "Code was broken!") : (puts "Game Over...")
   end
 
   private
+
+  def game_over
+    @turn > @turns
+  end
+
+  def code_broken
+    @board.feedback[@turn - 1] == "0W#{@pegs}B"
+  end
+
 
   def input_errors(input)
     errors = {}
@@ -47,9 +56,9 @@ class Game
   end
 
   def remind_conditions(errors)
-    puts "\nError:"
+    puts "\nInput Error:"
     errors.each do |type, msg|
-      puts " - #{msg}"
+      puts "- #{msg}"
     end
     print "Please try again: "
   end

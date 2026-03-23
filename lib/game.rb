@@ -1,6 +1,7 @@
 require_relative 'board'
 require_relative 'codemaker'
 require_relative 'codebreaker'
+
 class Game
   def initialize(turns = 12, pegs = 4, colors = 6)
     @turns = turns
@@ -8,20 +9,14 @@ class Game
     @pegs = pegs
     @colors = colors
     @computer = Codemaker.new
+    @player = Codebreaker.new
     @board = Board.new(@turns, @pegs)
   end
 
   def play
     until game_over
       print_conditions
-      begin
-        guess = gets.chomp.split('')
-        errors = input_errors(guess)
-        raise "Invalid Input" unless errors.empty?
-      rescue
-        remind_conditions(errors)
-        retry
-      end
+      guess = get_input
       feedback = @computer.give_feedback(guess)
       @board.update(@turn, guess, feedback)
       break if code_broken
@@ -29,8 +24,20 @@ class Game
     end
     code_broken ? (puts "Code was broken!") : (puts "Game Over...")
   end
-
+  
   private
+
+  def get_input
+    begin
+      guess = @player.guess
+      errors = input_errors(guess)
+      raise "Invalid Input" unless errors.empty?
+    rescue
+      remind_conditions(errors)
+      retry
+    end
+    guess
+  end
 
   def game_over
     @turn > @turns
@@ -39,7 +46,6 @@ class Game
   def code_broken
     @board.feedback[@turn - 1] == "0W#{@pegs}B"
   end
-
 
   def input_errors(input)
     errors = {}

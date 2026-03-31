@@ -1,22 +1,13 @@
+require_relative 'feedback'
 class Codemaker
+  include Feedback
   def initialize
     @code = make_code(4)
     puts "Code is #{@code.join}\n " # for testing
   end
 
   def give_feedback(guess)
-    black = 0
-    white = 0
-    guess.each_with_index do |number, i|
-      @code.each_with_index do |peg, j|
-        if number.to_i == peg.to_i
-          i == j ? black += 1 : white += 1
-        else
-          next
-        end
-      end
-    end
-    "#{white}W#{black}B"
+    super(guess, @code)
   end
 
   private 

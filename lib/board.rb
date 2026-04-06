@@ -6,6 +6,8 @@ class Board
     @feedback = Array.new(rows)
   end
 
+  attr_accessor :pegs, :colors
+
   def update(turn, guess, feedback)
     @board[turn - 1] = guess
     @feedback[turn - 1] = feedback

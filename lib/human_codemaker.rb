@@ -1,5 +1,5 @@
 require_relative 'codemaker'
-require_relative 'input_validatation'
+require_relative 'input_validation'
 
 class HumanCodemaker < Codemaker
 

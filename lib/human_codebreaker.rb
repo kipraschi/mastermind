@@ -1,4 +1,4 @@
-require_relative 'input_validatation'
+require_relative 'input_validation'
 class HumanCodebreaker
 
   include InputValidation

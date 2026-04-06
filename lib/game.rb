@@ -28,6 +28,14 @@ class Game
 
   private
 
+  def game_over
+    @turn > @turns
+  end
+
+  def code_broken
+    @board.feedback[@turn - 1] == "0W#{@board.pegs}B"
+  end
+
   def define_roles
     human_is_codebreaker = choose_role
     @codemaker = human_is_codebreaker ? ComputerCodemaker.new(@board) : HumanCodemaker.new(@board)
@@ -47,14 +55,6 @@ class Game
 
   def valid_role?(role)
     role.match?(/\A[mb]\z/i)
-  end
-
-  def game_over
-    @turn > @turns
-  end
-
-  def code_broken
-    @board.feedback[@turn - 1] == "0W#{@board.pegs}B"
   end
 
 end

@@ -1,42 +1,52 @@
 require_relative 'board'
 require_relative 'codemaker'
-require_relative 'codebreaker'
+require_relative 'human_codemaker'
+require_relative 'computer_codemaker'
+require_relative 'human_codebreaker'
+require_relative 'computer_codebreaker'
 
 class Game
   def initialize(turns = 12, pegs = 4, colors = 6)
     @turns = turns
     @turn = 1
-    @pegs = pegs
-    @colors = colors
-    @computer = Codemaker.new
-    @player = Codebreaker.new
-    @board = Board.new(@turns, @pegs)
+    @board = Board.new(@turns, pegs)
+    @board.pegs = pegs
+    @board.colors = colors
+    define_roles
   end
 
   def play
     until game_over
-      print_conditions
-      guess = get_input
-      feedback = @computer.give_feedback(guess)
+      guess = @codebreaker.guess
+      feedback = @codemaker.give_feedback(guess)
       @board.update(@turn, guess, feedback)
       break if code_broken
       @turn += 1
     end
-    code_broken ? (puts "Code was broken!") : (puts "Game Over...")
+    code_broken ? (puts "Code was broken in #{@turn} turns!") : (puts "Game Over...")
   end
-  
+
   private
 
-  def get_input
-    begin
-      guess = @player.guess
-      errors = input_errors(guess)
-      raise "Invalid Input" unless errors.empty?
-    rescue
-      remind_conditions(errors)
-      retry
+  def define_roles
+    human_is_codebreaker = choose_role
+    @codemaker = human_is_codebreaker ? ComputerCodemaker.new(@board) : HumanCodemaker.new(@board)
+    @codebreaker = human_is_codebreaker ? HumanCodebreaker.new(@board) : ComputerCodebreaker.new(@board)
+  end
+
+  def choose_role
+    puts 'Would you like to be the Codemaker [m] or Codebreaker [b]?'
+    print 'Type m or b to choose your role: '
+    loop do 
+      human_role = gets.chomp.downcase
+      return human_role == "b" if valid_role?(human_role)
+      puts 'Invalid.'
+      print "Please enter 'm' or 'b': "
     end
-    guess
+  end
+
+  def valid_role?(role)
+    role.match?(/\A[mb]\z/i)
   end
 
   def game_over
@@ -44,34 +54,7 @@ class Game
   end
 
   def code_broken
-    @board.feedback[@turn - 1] == "0W#{@pegs}B"
-  end
-
-  def input_errors(input)
-    errors = {}
-
-    unless input.all? { |number| (1..@colors).include?(number.to_i) }
-      errors[:range] =  "Your guess has to only contain numbers no lower than 1 and no higher than #{@colors}."
-    end
-    if input.length != @pegs
-      errors[:length] = "Code is #{@pegs} digits."
-    elsif input.uniq.length != @pegs
-      errors[:unique] = "Numbers don't repeat."
-    end
-    errors
-  end
-
-  def remind_conditions(errors)
-    puts "\nInput Error:"
-    errors.each do |type, msg|
-      puts "- #{msg}"
-    end
-    print "Please try again: "
-  end
-
-  def print_conditions
-    puts "Choose #{@pegs} unique numbers from 1 to 6."
-    print 'Make your guess: '
+    @board.feedback[@turn - 1] == "0W#{@board.pegs}B"
   end
 
 end
